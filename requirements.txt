@@ -1,2 +1,0 @@
-python-binance
-binance~=0.3

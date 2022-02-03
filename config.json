@@ -3,7 +3,7 @@
 	"api_secret": "",
 	"api_url" : "https://fapi.binance.com/",
 	"is_sandbox": "True",
-	"percentage": "0.3",
+	"percentage": "0.15",
 	"time": "5",
 	"leverage": "1",
 	"size": "200"

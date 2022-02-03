@@ -31,9 +31,11 @@ class Bot:
 
         for symbol, price in self.prices["now"].items():
             old_price = self.prices["before"][symbol]
-            percentage = (price - old_price / old_price) * 100.0
+            print(price)
+            print(old_price)
+            percentage = ((price - old_price) / old_price) * 100.0
             if abs(percentage) > self.percentage:
-                print("mooning ! : " + symbol)
+                print("mooning ! : " + symbol + " " + str(percentage))
                 self.add_order(
                     symbol=symbol,
                     price=price,
@@ -49,7 +51,8 @@ class Bot:
 
         prices = self.get_all_prices()
         for price in prices:
-            self.prices["now"][price.symbol] = price.price
+            if price.symbol[-4:] == "USDT":
+                self.prices["now"][price.symbol] = price.price
 
         return self.prices
 
