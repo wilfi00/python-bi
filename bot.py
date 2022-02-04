@@ -47,7 +47,7 @@ class Bot:
                 print("mooning ! : " + symbol + " " + str(percentage))
                 print("current price : " + str(price))
                 print("old price : " + str(old_price))
-                quantity = float(utils.truncate((self.size / price), 0))
+                quantity = utils.truncate((self.size / price), 4)
                 self.add_order(
                     symbol=symbol,
                     price=price,
