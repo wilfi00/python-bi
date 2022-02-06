@@ -30,8 +30,8 @@ class Bot:
         }
 
     def run(self):
+        self.store_prices()
         while 1:
-            self.store_prices()
             time.sleep(self.time)
             self.store_prices()
             self.detect_mooning()
@@ -47,7 +47,7 @@ class Bot:
                 print("mooning ! : " + symbol + " " + str(percentage))
                 print("current price : " + str(price))
                 print("old price : " + str(old_price))
-                quantity = utils.truncate((self.size / price), 4)
+                quantity = self.calculate_position(symbol)
                 self.add_order(
                     symbol=symbol,
                     price=price,
@@ -165,3 +165,37 @@ class Bot:
                 closePosition=True,
                 workingType=WorkingType.MARK_PRICE
             )
+
+    # Calcul des prix qty
+
+    # calculate how big a position we can open with the margin we have and the leverage we are using
+    def calculate_position_size(self, usdt_balance=1.0, _market="BTCUSDT", _leverage=1):
+        price = self.client.get_symbol_price_ticker(_market)
+        price = price[0].price
+
+        qty = (float(usdt_balance) / price) * _leverage
+        qty = round(qty * 0.99, 8)
+
+        return qty
+
+    # get the precision of the market, this is needed to avoid errors when creating orders
+    def get_market_precision(self, _market="BTCUSDT"):
+        market_data = self.client.get_exchange_information()
+        precision = 3
+        for market in market_data.symbols:
+            if market.symbol == _market:
+                precision = market.quantityPrecision
+                break
+        return precision
+
+    # round the position size we can open to the precision of the market
+    def round_to_precision(self, _qty, _precision):
+        new_qty = "{:0.0{}f}".format(_qty, _precision)
+        return float(new_qty)
+
+    # calculate a rounded position size for the bot, based on current USDT holding, leverage and market
+    def calculate_position(self, _market="BTCUSDT"):
+        qty = self.calculate_position_size(usdt_balance=self.size, _market=_market, _leverage=self.leverage)
+        precision = self.get_market_precision(_market=_market)
+        qty = self.round_to_precision(qty, precision)
+        return qty
