@@ -1,5 +1,7 @@
 import json
 import time
+from pprint import pprint
+
 from log import Log
 from binance_f import RequestClient
 from binance_f.model.constant import *
@@ -41,13 +43,17 @@ class Bot:
             return
 
         for symbol, price in self.prices["now"].items():
+            if symbol == "BTCUSDT" or symbol == "ENSUSDT" or symbol == "NKNUSDT":
+                continue
             old_price = self.prices["before"][symbol]
             percentage = ((price - old_price) / old_price) * 100.0
             if abs(percentage) > self.percentage:
                 print("mooning ! : " + symbol + " " + str(percentage))
                 print("current price : " + str(price))
                 print("old price : " + str(old_price))
+                print("qty : ")
                 quantity = self.calculate_position(symbol)
+                pprint(quantity)
                 self.add_order(
                     symbol=symbol,
                     price=price,
@@ -119,11 +125,19 @@ class Bot:
         sl_price = abs(float((price - old_price) * self.sl_percentage))
 
         if utils.is_buying(percentage):
-            sl_price = utils.truncate(price - sl_price, 4)
+            sl_price = price - sl_price
             side_order = OrderSide.SELL
         else:
-            sl_price = utils.truncate(price + sl_price, 4)
+            sl_price = price + sl_price
             side_order = OrderSide.BUY
+
+        sl_price = utils.truncate(sl_price, 4)
+        # precision = self.get_market_precision(_market=symbol)
+        # sl_price = self.round_to_precision(_qty=sl_price, _precision=precision)
+        # print("precision sl")
+        # pprint(precision)
+        # print("sl price")
+        # pprint(sl_price)
 
         Log.log_sl(
             symbol=symbol,
@@ -144,11 +158,20 @@ class Bot:
     def add_tp(self, symbol, price, old_price, percentage, quantity):
         tp_price = abs(float((price - old_price) * self.tp_percentage))
         if utils.is_buying(percentage):
-            tp_price = utils.truncate(price + tp_price, 4)
+            tp_price = price + tp_price
             side_order = OrderSide.SELL
         else:
-            tp_price = utils.truncate(price - tp_price, 4)
+            tp_price = price - tp_price
             side_order = OrderSide.BUY
+
+
+        tp_price = utils.truncate(tp_price, 4)
+        # precision = self.get_market_precision(_market=symbol)
+        # tp_price = self.round_to_precision(_qty=tp_price, _precision=precision)
+        # print("precision tp")
+        # pprint(precision)
+        # print("price tp")
+        # pprint(tp_price)
 
         Log.log_tp(
             symbol=symbol,
